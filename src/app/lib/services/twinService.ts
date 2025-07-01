@@ -142,7 +142,7 @@ export class TwinService {
         }
       );
 
-      return memories.map((memory: any) => ({
+      return memories.map((memory: { id: string; content: string; type: 'diary' | 'fact' | 'preference' | 'user_input' | 'system'; similarity?: number; tags: string[]; mood?: string; created_at: string }) => ({
         id: memory.id,
         content: memory.content,
         type: memory.type,
@@ -315,8 +315,8 @@ Remember and reference previous conversations with this user when appropriate.`;
    */
   private static async learnFromInteraction(
     request: TwinChatRequest,
-    response: { response: string; tokens_used: number },
-    userContext: UserMemoryContext | null
+    _response: { response: string; tokens_used: number },
+    _userContext: UserMemoryContext | null
   ): Promise<{ new_memories_created: number; user_insights_gained: string[] }> {
     const insights: string[] = [];
     let memoriesCreated = 0;
@@ -363,7 +363,7 @@ Remember and reference previous conversations with this user when appropriate.`;
   /**
    * Helper methods
    */
-  private static extractUserPreferences(memories: any[]): string[] {
+  private static extractUserPreferences(memories: { tags?: string[] }[]): string[] {
     // Simple preference extraction - could be enhanced with AI
     const preferences: string[] = [];
     memories.forEach(memory => {

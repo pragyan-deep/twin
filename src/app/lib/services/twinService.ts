@@ -38,7 +38,7 @@ export class TwinService {
     ],
     interests: [
       "Artificial Intelligence and Machine Learning",
-      "Music (especially brutal slam and synthwave)",
+      "Music",
       "Software architecture and system design",
       "Personal productivity and life optimization",
       "Technology trends and emerging tools"
@@ -137,10 +137,10 @@ export class TwinService {
       const memories = await DatabaseService.searchMemories(
         queryEmbedding,
         {
-          threshold: 0.7, // Similarity threshold
+          threshold: 0.2, // Optimized threshold for good recall
           limit: 8, // Top 8 most relevant memories
           subject: 'self', // Only Pragyan's memories
-          visibility: 'public' // For now, only public memories
+          visibility: 'public' // Only public memories for now
         }
       );
 
@@ -155,7 +155,7 @@ export class TwinService {
       }));
 
     } catch (error) {
-      console.error('Memory retrieval error:', error);
+      console.error('❌ Memory retrieval error:', error);
       return []; // Graceful fallback - continue without memories
     }
   }
@@ -302,7 +302,7 @@ Remember and reference previous conversations with this user when appropriate.`;
     };
   }
 
-  /**
+    /**
    * Learn from the interaction and store user insights
    */
   private static async learnFromInteraction(
@@ -316,22 +316,26 @@ Remember and reference previous conversations with this user when appropriate.`;
     try {
       // Store the user's message as a user_input memory
       if (request.user_id && request.message.trim().length > 10) {
-                 await DatabaseService.saveMemory({
-           id: crypto.randomUUID(),
-           content: request.message,
-           embedding: [], // We could embed this too if needed
-           type: 'user_input',
-           subject: 'user',
-           user_id: request.user_id,
-           tags: this.extractTagsFromMessage(request.message),
-           visibility: 'private',
-           metadata: {
-             conversation_id: request.conversation_id,
-             user_name: request.user_name,
-             interaction_type: 'chat_message',
-             timestamp: new Date().toISOString()
-           }
-         });
+        // Generate embedding for user message so it can be searched later
+        const userEmbeddingResponse = await createEmbeddings(request.message);
+        const userEmbedding = userEmbeddingResponse.data[0].embedding;
+
+        await DatabaseService.saveMemory({
+          id: crypto.randomUUID(),
+          content: request.message,
+          embedding: userEmbedding,
+          type: 'user_input',
+          subject: 'user',
+          user_id: request.user_id,
+          tags: this.extractTagsFromMessage(request.message),
+          visibility: 'private',
+          metadata: {
+            conversation_id: request.conversation_id,
+            user_name: request.user_name,
+            interaction_type: 'chat_message',
+            timestamp: new Date().toISOString()
+          }
+        });
         memoriesCreated++;
       }
 

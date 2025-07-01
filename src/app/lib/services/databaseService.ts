@@ -213,7 +213,7 @@ export class DatabaseService {
     try {
       const { data, error } = await supabaseTyped.rpc('search_memories', {
         query_embedding: queryEmbedding,
-        match_threshold: options.threshold || 0.8,
+        match_threshold: options.threshold || 0.5,
         match_count: options.limit || 10,
         filter_visibility: options.visibility || null,
         filter_type: options.type || null,

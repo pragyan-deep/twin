@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Twin - AI Chat Assistant",
-  description: "A sophisticated AI chat interface powered by OpenAI with real-time streaming, dark mode, and beautiful UI.",
+  title: "Pragyan AI Twin",
+  description: "Digital twin of Pragyan Deep - An AI version that thinks and responds just like him. Chat about coding, projects, or anything!",
 };
 
 export default function RootLayout({

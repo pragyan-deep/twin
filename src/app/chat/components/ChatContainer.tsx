@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useChat } from '../hooks/useChat';
+import { useTwinChat } from '../hooks/useTwinChat';
 import { MessageList } from './MessageList';
 import { InputArea } from './InputArea';
 
@@ -21,7 +21,7 @@ export function ChatContainer({ className = '' }: ChatContainerProps) {
     regenerateLastMessage,
     addReaction,
     deleteMessage
-  } = useChat();
+  } = useTwinChat();
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -42,7 +42,7 @@ export function ChatContainer({ className = '' }: ChatContainerProps) {
               Twin
             </h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {isStreaming ? 'Typing...' : 'AI Assistant'}
+              {isStreaming ? 'Typing...' : 'Your AI Twin'}
             </p>
           </div>
         </div>

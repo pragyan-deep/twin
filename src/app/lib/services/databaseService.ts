@@ -9,7 +9,7 @@ export class DatabaseService {
     id: string;
     content: string;
     embedding: number[];
-    type: 'fact' | 'diary' | 'preference';
+    type: 'fact' | 'diary' | 'preference' | 'user_input' | 'system';
     subject: 'self' | 'user';
     user_id?: string;
     tags: string[];
@@ -71,7 +71,7 @@ export class DatabaseService {
   static async getMemories(options: {
     page?: number;
     limit?: number;
-    type?: 'fact' | 'diary' | 'preference';
+    type?: 'fact' | 'diary' | 'preference' | 'user_input' | 'system';
     visibility?: 'public' | 'close_friends' | 'private';
     user_id?: string;
     tags?: string[];
@@ -206,7 +206,7 @@ export class DatabaseService {
       threshold?: number;
       limit?: number;
       visibility?: 'public' | 'close_friends' | 'private';
-      type?: 'fact' | 'diary' | 'preference';
+      type?: 'fact' | 'diary' | 'preference' | 'user_input' | 'system';
       subject?: 'self' | 'user';
     } = {}
   ): Promise<MemoryWithEmbedding[]> {
@@ -291,7 +291,7 @@ export class DatabaseService {
     updates: {
       content?: string;
       embedding?: number[];
-      type?: 'fact' | 'diary' | 'preference';
+      type?: 'fact' | 'diary' | 'preference' | 'user_input' | 'system';
       tags?: string[];
       visibility?: 'public' | 'close_friends' | 'private';
       mood?: string;

@@ -1,6 +1,6 @@
 export interface CreateMemoryRequest {
   content: string;
-  type: 'diary' | 'fact' | 'preference';
+  type: 'diary' | 'fact' | 'preference' | 'user_input' | 'system';
   visibility: 'public' | 'close_friends' | 'private';
   mood?: string;
   tags?: string[];
@@ -10,7 +10,7 @@ export interface CreateMemoryRequest {
 export interface Memory {
   id: string;
   content: string;
-  type: 'diary' | 'fact' | 'preference';
+  type: 'diary' | 'fact' | 'preference' | 'user_input' | 'system';
   subject: 'self' | 'user';
   user_id?: string;
   visibility: 'public' | 'close_friends' | 'private';

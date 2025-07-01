@@ -24,3 +24,83 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Chat UX Improvements */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+/* Prevent bounce scrolling on iOS */
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom Scrollbar Styling */
+.scroll-smooth::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-smooth::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-smooth::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.scroll-smooth::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  .scroll-smooth::-webkit-scrollbar-thumb {
+    background: rgba(75, 85, 99, 0.5);
+  }
+  
+  .scroll-smooth::-webkit-scrollbar-thumb:hover {
+    background: rgba(75, 85, 99, 0.8);
+  }
+}
+
+/* Improve text rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus visible improvements */
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Prevent zoom on input focus on iOS */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="email"], 
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+/* Better touch targets on mobile */
+@media (pointer: coarse) {
+  button,
+  input,
+  textarea,
+  select {
+    min-height: 44px;
+  }
+}

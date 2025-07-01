@@ -46,6 +46,8 @@ export function MessageBubble({ message, onReaction, onDelete, onCopy }: Message
       className={`group flex w-full mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setTimeout(() => setIsHovered(false), 2000)} // Keep actions visible longer on mobile
     >
       <div className={`flex max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}

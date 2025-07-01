@@ -10,7 +10,7 @@ CREATE TYPE memory_visibility AS ENUM ('public', 'close_friends', 'private');
 CREATE TABLE memories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     content TEXT NOT NULL,
-    embedding VECTOR(1536), -- OpenAI text-embedding-3-small dimension
+    embedding VECTOR(768), -- Google Gemini text-embedding-004 dimension
     type memory_type NOT NULL,
     subject memory_subject NOT NULL DEFAULT 'self',
     user_id TEXT,
@@ -85,7 +85,7 @@ CREATE POLICY "Allow users to delete own memories" ON memories
 
 -- Create a function for semantic search
 CREATE OR REPLACE FUNCTION search_memories(
-    query_embedding VECTOR(1536),
+    query_embedding VECTOR(768),
     match_threshold FLOAT DEFAULT 0.8,
     match_count INT DEFAULT 10,
     filter_visibility memory_visibility DEFAULT NULL,

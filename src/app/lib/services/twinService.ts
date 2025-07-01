@@ -1,12 +1,10 @@
 import { TwinChatRequest, TwinChatResponse, TwinPersonality, RetrievedMemory, UserMemoryContext } from '../types/twin.types';
 import { DatabaseService } from './databaseService';
 import { createEmbeddings } from '../embeddings';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export class TwinService {
-  private static openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
+  private static genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
   // Define Pragyan's personality and background
   private static readonly PERSONALITY: TwinPersonality = {
@@ -79,8 +77,8 @@ export class TwinService {
         request
       );
 
-      // 5. Generate response using OpenAI
-      const openaiResponse = await this.generateTwinResponse(
+      // 5. Generate response using Google Gemini
+      const geminiResponse = await this.generateTwinResponse(
         systemPrompt,
         conversationContext,
         request.message
@@ -89,7 +87,7 @@ export class TwinService {
       // 6. Learn from the interaction (store user insights)
       const learningResults = await this.learnFromInteraction(
         request,
-        openaiResponse,
+        geminiResponse,
         userContext
       );
 
@@ -98,7 +96,7 @@ export class TwinService {
       return {
         success: true,
         data: {
-          response: openaiResponse.response,
+          response: geminiResponse.response,
           conversation_id: request.conversation_id || 'default',
           memories_used: {
             count: relevantMemories.length,
@@ -106,14 +104,14 @@ export class TwinService {
             relevance_scores: relevantMemories.map(m => m.relevance_score)
           },
           personality: {
-            tone: this.detectResponseTone(openaiResponse.response),
+            tone: this.detectResponseTone(geminiResponse.response),
             context_applied: this.getAppliedContext(relevantMemories)
           },
           learning: learningResults
         },
         meta: {
           processing_time_ms: processingTime,
-          tokens_used: openaiResponse.tokens_used,
+          tokens_used: geminiResponse.tokens_used,
           memory_search_time_ms: memorySearchTime
         }
       };
@@ -277,29 +275,39 @@ Remember and reference previous conversations with this user when appropriate.`;
   }
 
   /**
-   * Generate response using OpenAI with Twin personality
+   * Generate response using Google Gemini with Twin personality
    */
   private static async generateTwinResponse(
     systemPrompt: string,
     context: string,
     userMessage: string
   ): Promise<{ response: string; tokens_used: number }> {
-    const completion = await this.openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage }
-      ],
-      max_tokens: 1000,
-      temperature: 0.8, // Slightly creative but consistent
-      presence_penalty: 0.3, // Encourage varied responses
-      frequency_penalty: 0.2 // Reduce repetition
-    });
+    try {
+      // Get the Gemini model (using Flash for speed and free tier)
+      const model = this.genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+        generationConfig: {
+          temperature: 0.8, // Slightly creative but consistent
+          topP: 0.95,
+          topK: 64,
+          maxOutputTokens: 1000,
+        }
+      });
 
-    return {
-      response: completion.choices[0].message.content || '',
-      tokens_used: completion.usage?.total_tokens || 0
-    };
+      // Combine system prompt with user message for Gemini
+      const fullPrompt = `${systemPrompt}\n\nUser: ${userMessage}\n\nPragyan:`;
+
+      const result = await model.generateContent(fullPrompt);
+      const response = result.response;
+      
+      return {
+        response: response.text() || '',
+        tokens_used: Math.ceil((systemPrompt.length + userMessage.length + (response.text()?.length || 0)) / 4) // Approximate token count
+      };
+    } catch (error) {
+      console.error('Gemini generation error:', error);
+      throw new Error(`Failed to generate response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
     /**

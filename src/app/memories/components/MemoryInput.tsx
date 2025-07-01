@@ -25,27 +25,43 @@ export function MemoryInput({ className = '' }: MemoryInputProps) {
     setSuccess(false);
 
     try {
-      // TODO: Implement API call to save memory
-      console.log('Saving memory:', {
-        content,
+      // Prepare memory data
+      const memoryData = {
+        content: content.trim(),
         type,
         visibility,
-        mood,
+        mood: mood.trim() || undefined,
         tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
+      };
+
+      // Call the memory API
+      const response = await fetch('/api/memories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(memoryData),
       });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      }
+
       setSuccess(true);
       setContent('');
       setMood('');
       setTags('');
       
+      console.log('Memory saved successfully:', result.data);
+      
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError('Failed to save memory. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save memory. Please try again.';
+      setError(errorMessage);
+      console.error('Error saving memory:', err);
     } finally {
       setIsLoading(false);
     }

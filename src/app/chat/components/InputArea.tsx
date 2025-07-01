@@ -7,9 +7,10 @@ interface InputAreaProps {
   onClearChat?: () => void;
   isLoading?: boolean;
   disabled?: boolean;
+  placeholder?: string;
 }
 
-export function InputArea({ onSendMessage, onClearChat, isLoading = false, disabled = false }: InputAreaProps) {
+export function InputArea({ onSendMessage, onClearChat, isLoading = false, disabled = false, placeholder }: InputAreaProps) {
   const [message, setMessage] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -100,7 +101,7 @@ export function InputArea({ onSendMessage, onClearChat, isLoading = false, disab
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              placeholder={disabled ? 'Chat is disabled' : 'Type a message... (Enter to send, Shift+Enter for new line)'}
+              placeholder={disabled ? 'Chat is disabled' : (placeholder || 'Type a message... (Enter to send, Shift+Enter for new line)')}
               disabled={disabled}
               className="w-full resize-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 border-none outline-none text-sm leading-6 min-h-[24px] max-h-[200px]"
               rows={1}

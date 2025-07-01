@@ -77,6 +77,50 @@ export interface Database {
           updated_at?: string;
         };
       };
+      profiles: {
+        Row: {
+          id: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          bio: string | null;
+          website: string | null;
+          location: string | null;
+          phone: string | null;
+          date_of_birth: string | null;
+          preferences: Record<string, any>;
+          settings: Record<string, any>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          bio?: string | null;
+          website?: string | null;
+          location?: string | null;
+          phone?: string | null;
+          date_of_birth?: string | null;
+          preferences?: Record<string, any>;
+          settings?: Record<string, any>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          bio?: string | null;
+          website?: string | null;
+          location?: string | null;
+          phone?: string | null;
+          date_of_birth?: string | null;
+          preferences?: Record<string, any>;
+          settings?: Record<string, any>;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Functions: {
       search_memories: {

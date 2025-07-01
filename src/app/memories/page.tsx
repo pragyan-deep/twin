@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { MemoryInput } from './components/MemoryInput';
 import { MemoryList } from './components/MemoryList';
 import { MemoryStats } from './components/MemoryStats';
+import { ProtectedRoute } from '../lib/components/ProtectedRoute';
 
 export default function MemoriesPage() {
   const [activeTab, setActiveTab] = useState<'input' | 'list' | 'stats'>('input');
 
   return (
-    <div className="h-screen flex flex-col">
+    <ProtectedRoute>
+      <div className="h-screen flex flex-col">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -92,5 +94,6 @@ export default function MemoriesPage() {
         )}
       </div>
     </div>
+    </ProtectedRoute>
   );
 } 

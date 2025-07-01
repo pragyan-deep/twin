@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message, ChatState } from '../types/chat.types';
 import { TwinChatRequest, TwinChatResponse } from '../../lib/types/twin.types';
+import { USER_PROFILE } from '../../lib/config/userProfile';
 
 export function useTwinChat() {
   const [state, setState] = useState<ChatState>({
@@ -16,6 +17,7 @@ export function useTwinChat() {
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const userIdRef = useRef<string>(`user_${Date.now()}_${Math.random().toString(36).substring(2)}`);
+  const hasGreeted = useRef<boolean>(false);
 
   const addMessage = useCallback((message: Omit<Message, 'id' | 'timestamp'>) => {
     const newMessage: Message = {
@@ -31,6 +33,19 @@ export function useTwinChat() {
 
     return newMessage.id;
   }, []);
+
+  // Add initial greeting when component mounts
+  useEffect(() => {
+    if (!hasGreeted.current && USER_PROFILE.personality.ask_for_name) {
+      hasGreeted.current = true;
+      setTimeout(() => {
+        addMessage({
+          content: USER_PROFILE.greeting,
+          role: 'assistant',
+        });
+      }, 500); // Small delay for better UX
+    }
+  }, [addMessage]);
 
   const updateMessage = useCallback((id: string, updates: Partial<Message>) => {
     setState(prev => ({
@@ -156,6 +171,7 @@ export function useTwinChat() {
       abortControllerRef.current = null;
     }
 
+    // Reset to initial state with greeting
     setState({
       messages: [],
       isLoading: false,
@@ -164,7 +180,19 @@ export function useTwinChat() {
       streamingMessage: '',
       error: null,
     });
-  }, []);
+
+    // Reset greeting flag and show greeting again
+    hasGreeted.current = false;
+    setTimeout(() => {
+      if (USER_PROFILE.personality.ask_for_name) {
+        hasGreeted.current = true;
+        addMessage({
+          content: USER_PROFILE.greeting,
+          role: 'assistant',
+        });
+      }
+    }, 300);
+  }, [addMessage]);
 
   const regenerateLastMessage = useCallback(async () => {
     const lastUserMessage = [...state.messages]
@@ -201,7 +229,10 @@ export function useTwinChat() {
   }, []);
 
   return {
-    ...state,
+    messages: state.messages,
+    isLoading: state.isLoading,
+    isStreaming: state.isStreaming,
+    error: state.error,
     sendMessage,
     clearChat,
     regenerateLastMessage,

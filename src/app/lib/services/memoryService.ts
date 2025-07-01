@@ -101,13 +101,15 @@ export class MemoryService {
     let text = request.content;
 
     // Add context based on type
-    const typeContext = {
+    const typeContext: Record<string, string> = {
       'diary': 'Personal diary entry',
       'fact': 'Personal fact about myself',
-      'preference': 'Personal preference or opinion'
+      'preference': 'Personal preference or opinion',
+      'user_input': 'User input',
+      'system': 'System information'
     };
 
-    text = `${typeContext[request.type]}: ${text}`;
+    text = `${typeContext[request.type] || 'Personal entry'}: ${text}`;
 
     // Include mood context if present
     if (request.mood && request.mood.trim()) {
@@ -170,12 +172,14 @@ export class MemoryService {
    */
   static createMemoryObject(
     request: CreateMemoryRequest,
+    user_id?: string,
     embedding?: number[]
   ): Omit<Memory, 'id' | 'created_at' | 'updated_at'> & { 
     id: string; 
     created_at: string; 
     updated_at: string;
     embedding?: number[];
+    user_id?: string;
   } {
     const now = new Date().toISOString();
     
@@ -184,6 +188,7 @@ export class MemoryService {
       content: request.content,
       type: request.type,
       subject: 'self', // MVP: admin-only memory creation
+      user_id: user_id || undefined,
       visibility: request.visibility,
       mood: request.mood || undefined,
       tags: request.tags || [],

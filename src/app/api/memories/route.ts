@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { MemoryService } from '../../lib/services/memoryService';
 import { DatabaseService } from '../../lib/services/databaseService';
 import { CreateMemoryRequest, CreateMemoryResponse, Memory } from '../../lib/types/memory.types';
+import { supabase } from '../../lib/supabase';
 
 export async function POST(request: Request) {
   const startTime = Date.now();
@@ -61,9 +62,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get authenticated user from cookies
+    let user_id: string | undefined;
+    try {
+      // Get session from request cookies
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        user_id = session.user.id;
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      // Continue without user_id for now - allows anonymous memories for MVP
+    }
+
     // Create memory object with embedding
     const memoryWithEmbedding = MemoryService.createMemoryObject(
       sanitizedRequest,
+      user_id,
       embeddingData.embedding
     );
 

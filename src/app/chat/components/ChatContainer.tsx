@@ -1,16 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import { useTwinChat } from '../hooks/useTwinChat';
 import { MessageList } from './MessageList';
 import { InputArea } from './InputArea';
+import { USER_PROFILE } from '../../lib/config/userProfile';
 
 interface ChatContainerProps {
   className?: string;
 }
 
 export function ChatContainer({ className = '' }: ChatContainerProps) {
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const {
     messages,
     isLoading,
@@ -23,26 +22,45 @@ export function ChatContainer({ className = '' }: ChatContainerProps) {
     deleteMessage
   } = useTwinChat();
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    // In a real app, you'd want to persist this to localStorage
-    document.documentElement.classList.toggle('dark');
-  };
-
   return (
     <div className={`flex flex-col h-screen bg-gray-50 dark:bg-gray-900 ${className}`}>
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">T</span>
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center relative">
+            <img
+              src={USER_PROFILE.avatar}
+              alt={USER_PROFILE.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to initials if image fails to load
+                const img = e.currentTarget as HTMLImageElement;
+                const span = img.nextElementSibling as HTMLSpanElement;
+                img.style.display = 'none';
+                span.style.display = 'flex';
+              }}
+            />
+            <span className="text-white font-bold text-sm hidden w-full h-full items-center justify-center">
+              {USER_PROFILE.name.charAt(0)}
+            </span>
+            {/* AI Badge */}
+            {USER_PROFILE.personality.show_ai_badge && (
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">⚡</span>
+              </div>
+            )}
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Twin
-            </h1>
+            <div className="flex items-center space-x-2">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {USER_PROFILE.name}
+              </h1>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                {USER_PROFILE.title}
+              </span>
+            </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {isStreaming ? 'Typing...' : 'Your AI Twin'}
+              {isStreaming ? 'Typing...' : USER_PROFILE.subtitle}
             </p>
           </div>
         </div>
@@ -50,8 +68,8 @@ export function ChatContainer({ className = '' }: ChatContainerProps) {
         <div className="flex items-center space-x-2">
           {/* Message count */}
           {messages.length > 0 && (
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {messages.length} message{messages.length !== 1 ? 's' : ''}
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              {messages.length} {messages.length === 1 ? 'message' : 'messages'}
             </span>
           )}
 
@@ -67,23 +85,6 @@ export function ChatContainer({ className = '' }: ChatContainerProps) {
               </svg>
             </button>
           )}
-
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title="Toggle theme"
-          >
-            {isDarkMode ? (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
 
           {/* Clear chat button */}
           <button
@@ -126,6 +127,7 @@ export function ChatContainer({ className = '' }: ChatContainerProps) {
         onClearChat={clearChat}
         isLoading={isLoading}
         disabled={!!error}
+        placeholder={`Ask ${USER_PROFILE.name.split(' ')[0]} anything...`}
       />
     </div>
   );

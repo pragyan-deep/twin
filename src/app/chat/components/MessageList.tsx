@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Message } from '../types/chat.types';
 import { MessageBubble } from './MessageBubble';
 import { TypingIndicator } from './TypingIndicator';
+import { USER_PROFILE } from '../../lib/config/userProfile';
 
 interface MessageListProps {
   messages: Message[];
@@ -63,28 +64,73 @@ export function MessageList({ messages, isStreaming = false, onReaction, onDelet
         <div className="max-w-4xl mx-auto space-y-1">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full min-h-[400px]">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-center max-w-md">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center relative">
+                  <img
+                    src={USER_PROFILE.avatar}
+                    alt={USER_PROFILE.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to chat icon if image fails to load
+                      const img = e.currentTarget as HTMLImageElement;
+                      const fallback = img.nextElementSibling as HTMLElement;
+                      img.style.display = 'none'; 
+                      fallback.style.display = 'flex';
+                    }}
+                  />
+                  <svg className="w-10 h-10 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
+                  {/* AI Badge */}
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">⚡</span>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  Welcome to Twin
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                  Start a conversation with your AI assistant. Ask questions, get help, or just chat!
-                </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-2">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
-                    💡 Ask me anything
-                  </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
-                    🚀 Get help with coding
-                  </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200">
-                    📝 Write content
-                  </span>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      Meet {USER_PROFILE.name.split(' ')[0]}'s AI Twin
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                      {USER_PROFILE.ai_context.description}
+                    </p>
+                  </div>
+
+                  {/* Capabilities */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      What I can help you with:
+                    </p>
+                    <div className="grid gap-2">
+                      {USER_PROFILE.ai_context.capabilities.map((capability, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-700 dark:text-gray-300"
+                        >
+                          <span>{capability}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Call to Action */}
+                  <div className="pt-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      Just start typing to begin our conversation! 👋
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+                        💡 Ask me anything
+                      </span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800">
+                        🚀 Get help with projects
+                      </span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-800">
+                        💬 Have a conversation
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

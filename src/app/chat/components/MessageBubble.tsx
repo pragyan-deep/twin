@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Message } from '../types/chat.types';
+import { USER_PROFILE } from '../../lib/config/userProfile';
 
 interface MessageBubbleProps {
   message: Message;
@@ -49,13 +50,35 @@ export function MessageBubble({ message, onReaction, onDelete, onCopy }: Message
       <div className={`flex max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         <div className={`flex-shrink-0 ${isUser ? 'ml-3' : 'mr-3'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-            isUser 
-              ? 'bg-blue-500 text-white' 
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-          }`}>
-            {isUser ? 'U' : 'T'}
-          </div>
+          {isUser ? (
+            <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+              U
+            </div>
+          ) : (
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center relative">
+              <img
+                src={USER_PROFILE.avatar}
+                alt={USER_PROFILE.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to initials if image fails to load
+                  const img = e.currentTarget as HTMLImageElement;
+                  const span = img.nextElementSibling as HTMLSpanElement;
+                  img.style.display = 'none';
+                  span.style.display = 'flex';
+                }}
+              />
+              <span className="text-white font-bold text-sm hidden w-full h-full items-center justify-center">
+                {USER_PROFILE.name.charAt(0)}
+              </span>
+              {/* AI Badge for assistant messages */}
+              {USER_PROFILE.personality.show_ai_badge && (
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">⚡</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Message Content */}

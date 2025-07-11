@@ -1,9 +1,7 @@
 import { QuestionType, CLASSIFICATION_PATTERNS } from '../config/twinConfig';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { ModelGenerationService } from './modelGenerationService';
 
 export class QuestionClassificationService {
-  private static genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
-
   /**
    * Enhanced question classification with hybrid approach
    */
@@ -50,14 +48,6 @@ export class QuestionClassificationService {
    */
   private static async llmClassifyQuestion(message: string): Promise<QuestionType> {
     try {
-      const model = this.genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        generationConfig: {
-          temperature: 0.1, // Low temperature for consistent classification
-          maxOutputTokens: 10,
-        }
-      });
-
       const classificationPrompt = `Classify this question into one category:
 Question: "${message}"
 
@@ -70,8 +60,12 @@ Categories:
 
 Answer with just the category name:`;
 
-      const result = await model.generateContent(classificationPrompt);
-      const classification = result.response.text()?.trim().toLowerCase();
+      const result = await ModelGenerationService.generateContent(classificationPrompt, {
+        temperature: 0.1, // Low temperature for consistent classification
+        maxOutputTokens: 10,
+      }); // Uses Mistral by default
+
+      const classification = result.text?.trim().toLowerCase();
 
       // Validate response
       const validTypes: QuestionType[] = ['casual', 'personal', 'technical', 'deep', 'specific'];

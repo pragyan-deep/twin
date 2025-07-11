@@ -1,5 +1,4 @@
 import { QuestionType, COMMUNICATION_STYLE, GENERATION_CONFIG } from '../config/twinConfig';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ErrorHandlingService, GracefulErrorResponse } from './errorHandlingService';
 import { ModelGenerationService } from './modelGenerationService';
 
@@ -11,8 +10,6 @@ interface GenerationResponse {
 }
 
 export class ResponseGeneratorService {
-  private static genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
-
   /**
    * Generate enhanced twin response with question-type-aware configuration
    */
@@ -84,14 +81,11 @@ export class ResponseGeneratorService {
   ): Promise<{ response: string; tokens_used: number } | GracefulErrorResponse> {
     try {
       // Get the Gemini model (using Flash for speed and free tier)
-      const model = this.genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        generationConfig: {
-          temperature: 0.8, // Slightly creative but consistent
-          topP: 0.95,
-          topK: 64,
-          maxOutputTokens: 1000,
-        }
+      const model = ModelGenerationService.getGeminiModel({
+        temperature: 0.8, // Slightly creative but consistent
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 1000,
       });
 
       // Combine system prompt with user message for Gemini

@@ -54,8 +54,6 @@ export function MemoryInput({ className = '' }: MemoryInputProps) {
       setMood('');
       setTags('');
       
-      console.log('Memory saved successfully:', result.data);
-      
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {

@@ -16,6 +16,11 @@ import {
   RESPONSE_GUIDANCE,
   PERSONALITY
 } from '../config/twinConfig';
+import {
+  AmbiguityDetectionService,
+  AmbiguityDetectionResult,
+  ClarificationResponse
+} from './ambiguityDetectionService';
 
 export class TwinService {
   private static genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
@@ -23,7 +28,7 @@ export class TwinService {
 
 
   /**
-   * Enhanced chat method with question-type-aware architecture
+   * Enhanced chat method with question-type-aware architecture and ambiguity detection
    */
   static async chat(request: TwinChatRequest): Promise<TwinChatResponse> {
     const startTime = Date.now();
@@ -32,7 +37,15 @@ export class TwinService {
       // 1. Classify the question type
       const questionType = await this.classifyQuestion(request.message);
 
-      // 2. Retrieve relevant memories based on question type
+      // 2. Check for ambiguity if it's a personal question
+      let ambiguityResult: AmbiguityDetectionResult | null = null;
+      if (questionType === 'personal') {
+        ambiguityResult = await AmbiguityDetectionService.detectAmbiguity(request.message);
+      }
+
+      console.log(ambiguityResult, "ambiguityResult")
+
+      // 3. Retrieve relevant memories based on question type
       const memorySearchStart = Date.now();
       const relevantMemories = await this.retrieveRelevantMemoriesEnhanced(
         request.message,
@@ -40,19 +53,57 @@ export class TwinService {
       );
       const memorySearchTime = Date.now() - memorySearchStart;
 
-      // 3. Get user context
+      // 4. Get user context
       const userContext = request.user_id
         ? await this.getUserContext(request.user_id)
         : null;
 
-      // 4. Build question-type-aware system prompt
+      // 5. Handle ambiguous questions with clarification
+      if (ambiguityResult?.isAmbiguous && ambiguityResult.clarificationNeeded) {
+        const clarificationResponse = await this.handleAmbiguousQuestion(
+          ambiguityResult,
+          relevantMemories,
+          request,
+          userContext
+        );
+
+        const processingTime = Date.now() - startTime;
+
+        return {
+          success: true,
+          data: {
+            response: clarificationResponse.response,
+            conversation_id: request.conversation_id || 'default',
+            memories_used: {
+              count: relevantMemories.length,
+              types: [...new Set(relevantMemories.map(m => m.type))],
+              relevance_scores: relevantMemories.map(m => m.relevance_score)
+            },
+            personality: {
+              tone: 'clarifying',
+              context_applied: clarificationResponse.categories
+            },
+            learning: {
+              new_memories_created: 0,
+              user_insights_gained: ['ambiguous_question_pattern']
+            }
+          },
+          meta: {
+            processing_time_ms: processingTime,
+            tokens_used: Math.ceil(clarificationResponse.response.length / 4),
+            memory_search_time_ms: memorySearchTime
+          }
+        };
+      }
+
+      // 6. Build question-type-aware system prompt (normal flow)
       const systemPrompt = this.buildEnhancedSystemPrompt(
         questionType,
         relevantMemories,
         userContext
       );
 
-      // 5. Build question-type-aware conversation context
+      // 7. Build question-type-aware conversation context
       const conversationContext = this.buildEnhancedConversationContext(
         questionType,
         relevantMemories,
@@ -60,7 +111,7 @@ export class TwinService {
         request
       );
 
-      // 6. Generate response with appropriate configuration
+      // 8. Generate response with appropriate configuration
       const geminiResponse = await this.generateEnhancedTwinResponse(
         systemPrompt,
         conversationContext,
@@ -68,7 +119,7 @@ export class TwinService {
         questionType
       );
 
-      // 7. Enhanced learning from interaction
+      // 9. Enhanced learning from interaction
       const learningResults = await this.enhancedLearnFromInteraction(
         questionType,
         request,
@@ -108,6 +159,45 @@ export class TwinService {
       console.error('Enhanced Twin chat error:', error);
       throw error;
     }
+  }
+
+  /**
+   * Handle ambiguous questions by generating clarification responses
+   */
+  private static async handleAmbiguousQuestion(
+    ambiguityResult: AmbiguityDetectionResult,
+    memories: RetrievedMemory[],
+    request: TwinChatRequest,
+    userContext: UserMemoryContext | null
+  ): Promise<{ response: string; categories: string[] }> {
+    // Generate clarification response using the ambiguity service
+    const clarification = AmbiguityDetectionService.generateClarificationResponse(
+      ambiguityResult,
+      memories
+    );
+
+    // Build a natural response that includes examples and asks for clarification
+    let response = "I like quite a few things! ";
+
+    // Add brief examples if available
+    if (clarification.briefExamples.length > 0) {
+      const examples = clarification.briefExamples.slice(0, 3);
+      if (examples.length === 1) {
+        response += `I'm into ${examples[0]}. `;
+      } else if (examples.length === 2) {
+        response += `I'm into ${examples[0]} and ${examples[1]}. `;
+      } else {
+        response += `I'm into ${examples[0]}, ${examples[1]}, and ${examples[2]}. `;
+      }
+    }
+
+    // Add clarification question
+    response += clarification.clarificationQuestion;
+
+    return {
+      response,
+      categories: clarification.categories
+    };
   }
 
   /**
@@ -242,7 +332,7 @@ Question: "${message}"
 Categories:
 - casual: simple greetings, "what's up" type questions
 - personal: asking about preferences, interests, personal info
-- technical: coding, work, projects, how-to questions  
+- technical: coding, work, projects, how-to questions
 - deep: philosophy, values, beliefs, complex topics
 - specific: asking about recent events, specific memories
 

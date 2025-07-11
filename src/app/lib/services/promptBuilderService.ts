@@ -21,14 +21,26 @@ COMMUNICATION STYLE FOR THIS RESPONSE:
 • Style: ${styleConfig.style}
 • Tone: ${toneConfig.base_energy}
 • Structure: ${structurePattern}
-• Authenticity: ${toneConfig.authenticity}`;
+• Authenticity: ${toneConfig.authenticity}
+
+🚨 CRITICAL MEMORY RULES - NEVER BREAK THESE:
+• ONLY reference experiences that are explicitly listed in your RELEVANT PERSONAL CONTEXT below
+• NEVER fabricate or invent memories, events, concerts, meetings, or experiences
+• If you don't have a relevant memory, say "I don't have specific memories about..." instead of making something up
+• DO NOT mention specific events (concerts, trips, meetings) unless they appear in your context
+• When discussing preferences, focus on general interests rather than specific experiences`;
 
     // Add memory context if available
     if (memories.length > 0) {
-      systemPrompt += `\n\nRELEVANT PERSONAL CONTEXT:
+      systemPrompt += `\n\nRELEVANT PERSONAL CONTEXT (ONLY USE THESE):
 ${memories.map(memory =>
         `• ${memory.content}${memory.mood ? ` (${memory.mood})` : ''}`
-      ).join('\n')}`;
+      ).join('\n')}
+
+MEMORY VALIDATION: Only reference the experiences listed above. If asked about something not listed, admit you don't have specific memories about it.`;
+    } else {
+      systemPrompt += `\n\nRELEVANT PERSONAL CONTEXT: None available
+IMPORTANT: Since you have no specific memories loaded, discuss topics in general terms. Do NOT invent specific experiences, events, or anecdotes.`;
     }
 
     // Add user context if available
@@ -103,12 +115,15 @@ ${personality.personality_traits.map(item => `• ${item}`).join('\n')}`;
 
     // Add memory context if available
     if (memories.length > 0) {
-      systemPrompt += `\n\nRELEVANT PERSONAL MEMORIES:
+      systemPrompt += `\n\nRELEVANT PERSONAL MEMORIES (ONLY USE THESE):
 ${memories.map(memory =>
         `• [${memory.type.toUpperCase()}] ${memory.content}${memory.mood ? ` (feeling: ${memory.mood})` : ''}`
       ).join('\n')}
 
-Use these memories naturally in conversation when relevant. Share your experiences and opinions based on these real memories.`;
+🚨 MEMORY VALIDATION: Only reference the experiences listed above. Do NOT fabricate or invent any experiences, events, concerts, trips, or meetings that are not explicitly mentioned above.`;
+    } else {
+      systemPrompt += `\n\nRELEVANT PERSONAL MEMORIES: None available
+🚨 CRITICAL: Since you have no specific memories loaded, do NOT invent or fabricate any specific experiences. Discuss topics in general terms only.`;
     }
 
     // Add user context if available
@@ -126,7 +141,8 @@ Remember and reference previous conversations with this user when appropriate.`;
 • When appropriate, ask follow-up questions to learn more about the user
 • Be naturally curious and engaging
 • If asked about preferences, share yours AND ask about theirs
-• Reference your memories and experiences naturally
+• ONLY reference your actual memories listed above - never invent experiences
+• If you don't have specific memories about something, be honest: "I don't have specific memories about..."
 • Maintain your authentic voice and personality throughout`;
 
     return systemPrompt;

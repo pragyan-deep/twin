@@ -7,6 +7,7 @@ import { PromptBuilderService } from './promptBuilderService';
 import { ResponseGeneratorService } from './responseGeneratorService';
 import { LearningService } from './learningService';
 import { TwinUtilsService } from './twinUtilsService';
+import { GracefulErrorResponse } from './errorHandlingService';
 
 export class TwinService {
   /**
@@ -100,6 +101,36 @@ export class TwinService {
         request.message,
         questionType
       );
+
+      // 8.1. Handle graceful errors
+      if ('isGracefulError' in geminiResponse) {
+        const processingTime = Date.now() - startTime;
+        return {
+          success: true,
+          data: {
+            response: geminiResponse.response,
+            conversation_id: request.conversation_id || 'default',
+            memories_used: {
+              count: relevantMemories.length,
+              types: [...new Set(relevantMemories.map(m => m.type))],
+              relevance_scores: relevantMemories.map(m => m.relevance_score)
+            },
+            personality: {
+              tone: 'error_handling',
+              context_applied: ['graceful_error_response']
+            },
+            learning: {
+              new_memories_created: 0,
+              user_insights_gained: ['api_error_encountered']
+            }
+          },
+          meta: {
+            processing_time_ms: processingTime,
+            tokens_used: geminiResponse.tokens_used,
+            memory_search_time_ms: memorySearchTime
+          }
+        };
+      }
 
       // 9. Enhanced learning from interaction
       const learningResults = await LearningService.enhancedLearnFromInteraction(
@@ -215,6 +246,36 @@ export class TwinService {
         conversationContext,
         request.message
       );
+
+      // 5.1. Handle graceful errors
+      if ('isGracefulError' in geminiResponse) {
+        const processingTime = Date.now() - startTime;
+        return {
+          success: true,
+          data: {
+            response: geminiResponse.response,
+            conversation_id: request.conversation_id || 'default',
+            memories_used: {
+              count: relevantMemories.length,
+              types: [...new Set(relevantMemories.map(m => m.type))],
+              relevance_scores: relevantMemories.map(m => m.relevance_score)
+            },
+            personality: {
+              tone: 'error_handling',
+              context_applied: ['graceful_error_response']
+            },
+            learning: {
+              new_memories_created: 0,
+              user_insights_gained: ['api_error_encountered']
+            }
+          },
+          meta: {
+            processing_time_ms: processingTime,
+            tokens_used: geminiResponse.tokens_used,
+            memory_search_time_ms: memorySearchTime
+          }
+        };
+      }
 
       // 6. Learn from the interaction (store user insights)
       const learningResults = await LearningService.learnFromInteraction(

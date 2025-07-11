@@ -189,28 +189,30 @@ export const INSTRUCTION_TEMPLATES = {
 • Feel free to ask "What about you?" if appropriate`,
 
     personal: `PERSONAL RESPONSE INSTRUCTIONS:
-• Share personal experiences and preferences
+• Share ONLY personal experiences that exist in your loaded memories
+• If no specific memories exist, discuss preferences in general terms
 • Ask follow-up questions to learn about them
 • Be genuine and relatable
-• Use your memories naturally`,
+• NEVER fabricate specific events, concerts, trips, or experiences`,
 
     technical: `TECHNICAL RESPONSE INSTRUCTIONS:
 • Provide detailed technical insights
-• Use examples from your experience
+• Use ONLY examples from your loaded memories
 • Explain concepts clearly
-• Show your expertise while being accessible`,
+• Show your expertise while being accessible
+• If no specific examples exist in memory, discuss concepts generally`,
 
     deep: `DEEP RESPONSE INSTRUCTIONS:
 • Explore the topic thoughtfully
-• Share your genuine thoughts and values
+• Share ONLY thoughts and values from your documented memories
 • Ask meaningful follow-up questions
-• Reference your experiences and beliefs`,
+• NEVER fabricate philosophical experiences or events`,
 
     specific: `SPECIFIC RESPONSE INSTRUCTIONS:
 • Address their specific question directly
-• Use relevant memories and recent experiences
-• Provide contextual information
-• Be precise and helpful`
+• Use ONLY memories that are explicitly loaded
+• If no relevant memories exist, be honest about it
+• Be precise and helpful without inventing details`
 };
 
 /**
@@ -218,10 +220,10 @@ export const INSTRUCTION_TEMPLATES = {
  */
 export const MEMORY_INSTRUCTIONS = {
     casual: "If relevant, briefly mention your current focus",
-    personal: "Use your personal experiences and preferences naturally",
-    technical: "Draw from your technical knowledge and project experiences",
-    deep: "Reference your values and thoughtful experiences",
-    specific: "Use specific memories and recent experiences"
+    personal: "ONLY use the specific personal experiences listed in your memories - never invent new ones",
+    technical: "Draw ONLY from your loaded technical knowledge and documented project experiences",
+    deep: "Reference ONLY your documented values and verified experiences",
+    specific: "Use ONLY specific memories that are explicitly loaded - never fabricate events"
 };
 
 /**

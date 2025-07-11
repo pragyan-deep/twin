@@ -1,5 +1,6 @@
 import { QuestionType, COMMUNICATION_STYLE, GENERATION_CONFIG } from '../config/twinConfig';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { ErrorHandlingService, GracefulErrorResponse } from './errorHandlingService';
 
 export class ResponseGeneratorService {
   private static genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
@@ -12,7 +13,7 @@ export class ResponseGeneratorService {
     context: string,
     userMessage: string,
     questionType: QuestionType
-  ): Promise<{ response: string; tokens_used: number }> {
+  ): Promise<{ response: string; tokens_used: number } | GracefulErrorResponse> {
     try {
       const styleConfig = COMMUNICATION_STYLE.response_length[questionType];
       const temperature = GENERATION_CONFIG.temperatures[questionType];
@@ -41,6 +42,13 @@ export class ResponseGeneratorService {
       };
     } catch (error) {
       console.error('Enhanced Gemini generation error:', error);
+      
+      // Handle API errors gracefully with personality
+      if (ErrorHandlingService.shouldHandleGracefully(error)) {
+        return ErrorHandlingService.handleGeminiError(error, userMessage);
+      }
+      
+      // For unexpected errors, still throw
       throw new Error(`Failed to generate response: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -52,7 +60,7 @@ export class ResponseGeneratorService {
     systemPrompt: string,
     context: string,
     userMessage: string
-  ): Promise<{ response: string; tokens_used: number }> {
+  ): Promise<{ response: string; tokens_used: number } | GracefulErrorResponse> {
     try {
       // Get the Gemini model (using Flash for speed and free tier)
       const model = this.genAI.getGenerativeModel({
@@ -77,6 +85,13 @@ export class ResponseGeneratorService {
       };
     } catch (error) {
       console.error('Gemini generation error:', error);
+      
+      // Handle API errors gracefully with personality
+      if (ErrorHandlingService.shouldHandleGracefully(error)) {
+        return ErrorHandlingService.handleGeminiError(error, userMessage);
+      }
+      
+      // For unexpected errors, still throw
       throw new Error(`Failed to generate response: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

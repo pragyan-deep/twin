@@ -6,6 +6,9 @@ Create a `.env.local` file in your project root with the following variables:
 # Google Gemini API Key (free - 15K embedding requests/day + 1.5K chat requests/day)
 GOOGLE_API_KEY=your_google_api_key_here
 
+# Mistral API Key (optional - for using Mistral models instead of Gemini)
+# MISTRAL_API_KEY=your_mistral_api_key_here
+
 # OpenAI API Key (no longer needed - fully replaced by Gemini)
 # OPENAI_API_KEY=your_openai_api_key_here
 
@@ -22,6 +25,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 
 1. **Get Google Gemini API Key:**
    - Go to https://aistudio.google.com/app/apikey
+   - Create a new API key
+   - Copy the API key
+
+   **Or Get Mistral API Key (optional):**
+   - Go to https://console.mistral.ai/api-keys/
    - Create a new API key
    - Copy the API key
 
@@ -54,5 +62,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 - **Google Gemini provides:**
   - **15,000 FREE embedding requests per day** (text-embedding-004)
   - **1,500 FREE chat requests per day** (gemini-1.5-flash)
+- **Mistral AI provides:**
+  - Alternative to Gemini with competitive pricing
+  - Models: mistral-small-latest, mistral-large-latest, etc.
 - Embeddings now use 768 dimensions (down from 1536) for better performance
 - **Completely free AI twin** - no OpenAI costs! 

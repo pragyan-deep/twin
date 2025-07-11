@@ -99,7 +99,8 @@ export class TwinService {
         systemPrompt,
         conversationContext,
         request.message,
-        questionType
+        questionType,
+        'mistral'
       );
 
       // 8.1. Handle graceful errors

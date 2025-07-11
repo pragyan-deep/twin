@@ -91,7 +91,7 @@ export class AmbiguityDetectionService {
   static async detectAmbiguity(message: string): Promise<AmbiguityDetectionResult> {
     const reasons: string[] = [];
     let confidence = 0;
-    let detectionMethod = 'hybrid';
+    const detectionMethod = 'hybrid';
 
     // 1. Fast keyword-based detection
     const keywordResult = this.detectKeywordAmbiguity(message);

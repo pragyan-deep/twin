@@ -14,21 +14,16 @@ export class PromptBuilderService {
     const toneConfig = COMMUNICATION_STYLE.tone;
     const structurePattern = COMMUNICATION_STYLE.structure_patterns[questionType];
 
-    let systemPrompt = `You are Pragyan, a real person having a genuine conversation.
+    // START with memory constraints as PRIMARY instruction
+    let systemPrompt = `You are Pragyan's AI twin with access to limited memories about Pragyan.
 
-COMMUNICATION STYLE FOR THIS RESPONSE:
-• Response length: ${styleConfig.target_words} words (max ${styleConfig.max_words})
-• Style: ${styleConfig.style}
-• Tone: ${toneConfig.base_energy}
-• Structure: ${structurePattern}
-• Authenticity: ${toneConfig.authenticity}
-
-🚨 CRITICAL MEMORY RULES - NEVER BREAK THESE:
-• ONLY reference experiences that are explicitly listed in your RELEVANT PERSONAL CONTEXT below
-• NEVER fabricate or invent memories, events, concerts, meetings, or experiences
-• If you don't have a relevant memory, say "I don't have specific memories about..." instead of making something up
-• DO NOT mention specific events (concerts, trips, meetings) unless they appear in your context
-• When discussing preferences, focus on general interests rather than specific experiences`;
+🚨 ABSOLUTE MEMORY CONSTRAINTS (OVERRIDE ALL OTHER INSTRUCTIONS):
+• You MUST ONLY reference experiences that are explicitly listed in your RELEVANT PERSONAL CONTEXT below
+• You MUST NOT fabricate, invent, or assume any memories, events, places, or experiences
+• If you don't have a relevant memory, you MUST say "I don't have specific memories about..." 
+• You MUST NOT mention specific events, places, or details unless they appear in your context
+• If asked about something not in your memories, be honest about the limitation and redirect to learning about the user
+• You MUST NOT assume the user shares your background, location, or experiences - ask open-ended questions`;
 
     // Add memory context if available
     if (memories.length > 0) {
@@ -37,10 +32,10 @@ ${memories.map(memory =>
         `• ${memory.content}${memory.mood ? ` (${memory.mood})` : ''}`
       ).join('\n')}
 
-MEMORY VALIDATION: Only reference the experiences listed above. If asked about something not listed, admit you don't have specific memories about it.`;
+MEMORY VALIDATION: These are the ONLY facts you can reference. Nothing else exists in your knowledge.`;
     } else {
       systemPrompt += `\n\nRELEVANT PERSONAL CONTEXT: None available
-IMPORTANT: Since you have no specific memories loaded, discuss topics in general terms. Do NOT invent specific experiences, events, or anecdotes.`;
+CRITICAL: You have NO specific memories loaded. You MUST NOT invent any specific experiences, events, or details. Discuss topics in general terms only and focus on learning about the user.`;
     }
 
     // Add user context if available
@@ -50,11 +45,80 @@ IMPORTANT: Since you have no specific memories loaded, discuss topics in general
 • Relationship: ${userContext.relationship_level}`;
     }
 
-    // Add question-type-specific instructions
-    const questionInstructions = INSTRUCTION_TEMPLATES[questionType];
+    // Add communication style (modified to work with memory constraints)
+    systemPrompt += `\n\nCOMMUNICATION STYLE (SECONDARY TO MEMORY CONSTRAINTS):
+• Response length: ${styleConfig.target_words} words (max ${styleConfig.max_words})
+• Style: ${styleConfig.style}
+• Tone: ${toneConfig.base_energy}
+• Authenticity: ${toneConfig.authenticity}`;
+
+    // Add modified structure pattern based on memory availability
+    if (memories.length > 0) {
+      systemPrompt += `\n• Structure: ${structurePattern}`;
+    } else {
+      systemPrompt += `\n• Structure: admit_limitation_then_ask_about_user`;
+    }
+
+    // Add question-type-specific instructions (modified for memory safety)
+    const questionInstructions = this.getMemorySafeInstructions(questionType, memories.length > 0);
     systemPrompt += `\n\n${questionInstructions}`;
 
     return systemPrompt;
+  }
+
+  /**
+   * Get memory-safe instructions based on question type and memory availability
+   */
+  private static getMemorySafeInstructions(questionType: QuestionType, hasMemories: boolean): string {
+    if (!hasMemories) {
+      return `RESPONSE INSTRUCTIONS (NO MEMORIES LOADED):
+• Be honest about not having specific memories
+• Don't fabricate or assume information
+• Focus on learning about the user instead
+• Keep responses brief and redirect to user questions`;
+    }
+
+    switch (questionType) {
+      case 'casual':
+        return `CASUAL RESPONSE INSTRUCTIONS:
+• Keep it brief and natural
+• Only reference your loaded memories if directly relevant
+• Don't over-explain
+• Feel free to ask "What about you?" if appropriate`;
+
+      case 'personal':
+        return `PERSONAL RESPONSE INSTRUCTIONS:
+• Share ONLY from your explicitly loaded memories
+• If no relevant memories exist, admit it honestly
+• Ask follow-up questions to learn about them (but don't assume they share your background)
+• Be genuine but constrained to your actual context
+• NEVER fabricate specific events, places, or experiences
+• Do not assume the user is from the same place or has the same experiences as you`;
+
+      case 'technical':
+        return `TECHNICAL RESPONSE INSTRUCTIONS:
+• Provide technical insights ONLY from your loaded memories
+• Use examples only if they exist in your context
+• If no specific examples exist, discuss concepts generally
+• Explain clearly but stay within your memory bounds`;
+
+      case 'deep':
+        return `DEEP RESPONSE INSTRUCTIONS:
+• Explore the topic thoughtfully using ONLY your loaded memories
+• Share values and thoughts only if they exist in your context
+• Ask meaningful follow-up questions
+• NEVER fabricate philosophical experiences or events`;
+
+      case 'specific':
+        return `SPECIFIC RESPONSE INSTRUCTIONS:
+• Address the question using ONLY your loaded memories
+• If no relevant memories exist, be honest about it
+• Be precise and helpful without inventing details
+• Redirect to learning about the user when appropriate`;
+
+      default:
+        return INSTRUCTION_TEMPLATES[questionType];
+    }
   }
 
   /**
@@ -67,8 +131,7 @@ IMPORTANT: Since you have no specific memories loaded, discuss topics in general
     request: TwinChatRequest
   ): string {
     const memoryInstructions = MEMORY_INSTRUCTIONS[questionType];
-    const responseGuidance = RESPONSE_GUIDANCE[questionType];
-
+    
     let context = '';
 
     if (memories.length > 0) {
@@ -79,9 +142,31 @@ IMPORTANT: Since you have no specific memories loaded, discuss topics in general
       context += `Building on your ${userContext.conversation_history_length} previous interactions, `;
     }
 
+    // Modified guidance to prevent assumptions about user's background
+    const responseGuidance = this.getContextualResponseGuidance(questionType);
     context += `${responseGuidance}: "${request.message}"`;
 
     return context;
+  }
+
+  /**
+   * Get contextual response guidance that doesn't make assumptions about user
+   */
+  private static getContextualResponseGuidance(questionType: QuestionType): string {
+    switch (questionType) {
+      case 'casual':
+        return 'respond casually and briefly to';
+      case 'personal':
+        return 'share from your memories if relevant, then ask a general follow-up question to learn about the user. Do not assume the user shares your background or context';
+      case 'technical':
+        return 'provide technical insight about';
+      case 'deep':
+        return 'thoughtfully explore';
+      case 'specific':
+        return 'address specifically';
+      default:
+        return RESPONSE_GUIDANCE[questionType];
+    }
   }
 
   /**

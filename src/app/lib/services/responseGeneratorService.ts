@@ -22,6 +22,12 @@ export class ResponseGeneratorService {
   ): Promise<GenerationResponse | GracefulErrorResponse> {
     try {
       const generationConfig = this.buildGenerationConfig(questionType);
+
+      console.log(systemPrompt, "systemPrompt")
+      console.log(context, "context")
+      console.log(userMessage, "userMessage")
+      console.log(questionType, "questionType")
+      console.log(provider, "provider")
       
       const result = await ModelGenerationService.generateWithModel(
         systemPrompt, 
